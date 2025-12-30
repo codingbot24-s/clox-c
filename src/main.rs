@@ -3,25 +3,44 @@ enum OPCODE {
     OPRETURN,
 }
 
+type Value = f64;
+struct ValueArr {
+    values:Vec<Value>,     
+}
+
+impl ValueArr {
+    fn new () -> Self {
+        ValueArr {
+            values:Vec::new(),
+        }
+    }
+
+    fn write_value(&mut self,value:Value) {
+        self.values.push(value);
+        // TODO: return not implemented return usize 
+    }
+
+    fn free (&mut self) {
+        self.values = Vec::new();
+    }
+}
+
 struct Chunk {
-    // vec of op_code
     code: Vec<OPCODE>,
-    index: usize,
+    constants:ValueArr,
 }
 
 impl Chunk {
     fn new() -> Self {
         Chunk {
             code: Vec::new(),
-            index: 0,
+            constants:ValueArr::new() 
         }
     }
 
     fn write_chunk(&mut self, code: OPCODE) {
         self.code.push(code);
-        self.index += 1;
     }
-    // we need the index also
     fn disassemble_chunk(&self, name: &str) {
         println!("== {} == ", name);
         let mut offset = 0;
@@ -40,6 +59,7 @@ impl Chunk {
                 OPCODE::OPRETURN => {
                     Ok(self.simple_instruction(ins, offset))
                 }
+                
             }
         }else {
             Err(eprintln!("error getting the next instruction"))
@@ -50,10 +70,22 @@ impl Chunk {
         println!("{:?}", v);
         offset + 1
     }
+    
+    fn free (&mut self) {
+        self.code = Vec::new();
+        self.constants = ValueArr::new();
+    }
+
+    fn add_constants (&mut self,value:Value)  {
+        self.constants.write_value(value);
+    }    
 }
+
 
 fn main() {
     let mut c = Chunk::new();
     c.write_chunk(OPCODE::OPRETURN);
     c.disassemble_chunk(&"test chunk");
+    c.add_constants(7777.11);
+    c.free();
 }
