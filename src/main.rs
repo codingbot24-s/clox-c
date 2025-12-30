@@ -1,7 +1,34 @@
 #[derive(Debug)]
 enum OPCODE {
-    OPRETURN,
+    OPRETURN = 0,
+    OPCONSTANT = 1
 }
+
+/*
+    TODO: 
+    1. implement u8 from  Opcode
+    2. implemnent Opcode to u8    
+*/
+
+// OPCODE --> u8
+impl From<OPCODE> for u8 {
+    fn from(value: OPCODE) -> Self {
+       value as u8 
+    } 
+}
+
+// u8 --> OPCODE
+
+impl From<u8> for OPCODE {
+    fn from(value: u8) -> Self {
+        match value {
+            0 => OPCODE::OPRETURN,
+            1 => OPCODE::OPCONSTANT,
+            _ => unimplemented!()
+        }
+    }
+}
+
 
 type Value = f64;
 struct ValueArr {
@@ -15,9 +42,10 @@ impl ValueArr {
         }
     }
 
-    fn write_value(&mut self,value:Value) {
+    fn write_value(&mut self,value:Value) -> usize {
+        let count =  self.values.len();
         self.values.push(value);
-        // TODO: return not implemented return usize 
+        count 
     }
 
     fn free (&mut self) {
@@ -26,7 +54,7 @@ impl ValueArr {
 }
 
 struct Chunk {
-    code: Vec<OPCODE>,
+    code: Vec<u8>,
     constants:ValueArr,
 }
 
@@ -37,9 +65,8 @@ impl Chunk {
             constants:ValueArr::new() 
         }
     }
-
     fn write_chunk(&mut self, code: OPCODE) {
-        self.code.push(code);
+        self.code.push(code.into());
     }
     fn disassemble_chunk(&self, name: &str) {
         println!("== {} == ", name);
@@ -54,13 +81,12 @@ impl Chunk {
 
     fn disassemble_instruction(&self,offset:usize) -> Result<usize,()> {
         print!("{:04} ",offset);
-        if let Some(ins) = self.code.get(offset) {
-            match ins {
+        if let Some(code) = self.code[offset].into() {
+            match code {
                 OPCODE::OPRETURN => {
-                    Ok(self.simple_instruction(ins, offset))
+                    
                 }
-                
-            }
+            } 
         }else {
             Err(eprintln!("error getting the next instruction"))
         }
@@ -76,8 +102,8 @@ impl Chunk {
         self.constants = ValueArr::new();
     }
 
-    fn add_constants (&mut self,value:Value)  {
-        self.constants.write_value(value);
+    fn add_constants (&mut self,value:Value) -> usize {
+        self.constants.write_value(value)
     }    
 }
 
@@ -86,6 +112,6 @@ fn main() {
     let mut c = Chunk::new();
     c.write_chunk(OPCODE::OPRETURN);
     c.disassemble_chunk(&"test chunk");
-    c.add_constants(7777.11);
+    let c_pool_index  = c.add_constants(7777.11);
     c.free();
 }
