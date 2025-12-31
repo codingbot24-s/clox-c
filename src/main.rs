@@ -102,7 +102,11 @@ impl Chunk {
     }
     
     fn constant_instruction (&self,name:String,offset:usize) -> usize {
-        // TODO: implement constant instruction 
+        /*
+            TODO: -> 
+            1. get the value counter by offset + 1
+            2. get the value from value pool 
+        */
         todo!()
     }
     
@@ -110,7 +114,7 @@ impl Chunk {
         self.code = Vec::new();
         self.constants = ValueArr::new();
     }
-
+    // write the value in the value arr and get the count 
     fn add_constants (&mut self,value:Value) -> usize {
         self.constants.write_value(value)
     }    
@@ -121,6 +125,12 @@ fn main() {
     let mut c = Chunk::new();
     c.write_chunk(OPCODE::OPRETURN);
     c.disassemble_chunk(&"test chunk");
+    /*  
+        TODO: -> in main
+        1. get the constant counter after adding the constant 
+        2. add constant and 
+        3. counter in the chunk with write chunk 
+    */
     let c_pool_index  = c.add_constants(7777.11);
     c.free();
 }
