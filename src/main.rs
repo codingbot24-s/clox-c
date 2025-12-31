@@ -4,12 +4,6 @@ enum OPCODE {
     OPCONSTANT = 1
 }
 
-/*
-    TODO: 
-    1. implement u8 from  Opcode
-    2. implemnent Opcode to u8    
-*/
-
 // OPCODE --> u8
 impl From<OPCODE> for u8 {
     fn from(value: OPCODE) -> Self {
