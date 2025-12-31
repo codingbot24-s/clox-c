@@ -81,20 +81,29 @@ impl Chunk {
 
     fn disassemble_instruction(&self,offset:usize) -> Result<usize,()> {
         print!("{:04} ",offset);
-        if let Some(code) = self.code[offset].into() {
-            match code {
-                OPCODE::OPRETURN => {
-                    
-                }
-            } 
-        }else {
-            Err(eprintln!("error getting the next instruction"))
-        }
+        // get the instruction and switch according to it 
+        let code:OPCODE = self.code[offset].into();
+        match code {
+            OPCODE::OPCONSTANT => {
+                Ok(self.constant_instruction("OP_CONSTANT".to_string(), offset))
+            }
+            OPCODE::OPRETURN => {
+                Ok(self.simple_instruction(&code, offset))
+            }
+            _ => {
+                Err(eprintln!("error finding the opcode"))
+            }
+        }      
     }
 
     fn simple_instruction(&self, v: &OPCODE, offset: usize) -> usize {
         println!("{:?}", v);
         offset + 1
+    }
+    
+    fn constant_instruction (&self,name:String,offset:usize) -> usize {
+        // TODO: implement constant instruction 
+        todo!()
     }
     
     fn free (&mut self) {
