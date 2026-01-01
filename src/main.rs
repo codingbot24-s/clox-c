@@ -50,6 +50,7 @@ impl ValueArr {
 
 struct Chunk {
     code: Vec<u8>,
+    lines: Vec<usize>,
     constants: ValueArr,
 }
 
@@ -57,11 +58,13 @@ impl Chunk {
     fn new() -> Self {
         Chunk {
             code: Vec::new(),
+            lines: Vec::new(),
             constants: ValueArr::new(),
         }
     }
 
-    fn write_chunk(&mut self, code: u8) {
+    fn write_chunk(&mut self, code: u8, line: usize) {
+        self.lines.push(line);
         self.code.push(code);
     }
     fn disassemble_chunk(&self, name: &str) {
@@ -76,7 +79,11 @@ impl Chunk {
 
     fn disassemble_instruction(&self, offset: usize) -> Result<usize, ()> {
         print!("{:04} ", offset);
-        // get the instruction and switch according to it
+        if offset > 0 && self.lines[offset] == self.lines[offset - 1] {
+            print!("  | ")
+        } else {
+            print!("{:4} ", self.lines[offset])
+        }
         let code: OPCODE = self.code[offset].into();
         match code {
             OPCODE::OPCONSTANT => Ok(self.constant_instruction("OP_CONSTANT".to_string(), offset)),
@@ -108,22 +115,48 @@ impl Chunk {
     }
 }
 
+struct Vm {
+    chunks: Vec<Chunk>,
+}
+
+enum INTERPRETRESULT {
+    INTERPRET_OK,
+    INTERPRET_COMPILE_ERROR,
+    INTERPRET_RUNTIME_ERROR   
+}
+
+impl Vm {
+    fn new_vm() -> Self {
+        Vm { chunks: Vec::new() }
+    }
+
+    fn interpret (&self) -> INTERPRETRESULT {
+        todo!()
+        /*
+            1. get the chunk as an input 
+        */
+    }    
+
+    fn free_vm(&mut self) {
+        self.chunks = Vec::new();
+    }
+}
+
 fn main() {
+    let mut vm = Vm::new_vm();
     let mut c = Chunk::new();
 
     let constant = c.add_constants(1.2);
-    c.write_chunk(OPCODE::OPCONSTANT.into());
-    c.write_chunk(constant as u8);
+    c.write_chunk(OPCODE::OPCONSTANT.into(), 123);
+    c.write_chunk(constant as u8, 123);
 
-    c.write_chunk(OPCODE::OPRETURN.into());
+    c.write_chunk(OPCODE::OPRETURN.into(), 123);
     c.disassemble_chunk(&"test chunk");
+
+
+    vm.interpret();
+
+    vm.free_vm();
 
     c.free();
 }
-
-/*
-TODO: -> in main
-1. get the constant counter after adding the constant
-2. add constant and
-3. counter in the chunk with write chunk
-*/
