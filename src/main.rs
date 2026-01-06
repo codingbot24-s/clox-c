@@ -105,6 +105,11 @@ impl Chunk {
         offset + 2
     }
 
+    fn read_chunk_byte(&self, ip:usize) -> u8 {
+        self.code[ip]
+    }
+
+
     fn free(&mut self) {
         self.code = Vec::new();
         self.constants = ValueArr::new();
@@ -115,30 +120,63 @@ impl Chunk {
     }
 }
 
-struct Vm {
-    chunks: Vec<Chunk>,
-}
 
 enum INTERPRETRESULT {
-    INTERPRET_OK,
-    INTERPRET_COMPILE_ERROR,
-    INTERPRET_RUNTIME_ERROR   
+    INTERPRETOK,
+    INTERPRETCOMPILEERROR,
+    INTERPRETRUNTIMEERROR
+}
+struct Vm {
+    // chunks: Option<Chunk>,
+    ip:usize
 }
 
 impl Vm {
     fn new_vm() -> Self {
-        Vm { chunks: Vec::new() }
+        Vm {
+            // TODO: change this 
+            ip: 0
+        }
     }
 
-    fn interpret (&self) -> INTERPRETRESULT {
-        todo!()
-        /*
-            1. get the chunk as an input 
-        */
+    fn interpret (&mut self,c:&Chunk) -> INTERPRETRESULT {
+        self.ip = 0;
+        self.run(c)
     }    
 
+    fn run (&mut self,c:&Chunk) -> INTERPRETRESULT {
+        loop {
+            let ins = self.read_byte(c);
+            match  ins {
+                OPCODE::OPRETURN => {
+                    return INTERPRETRESULT::INTERPRETOK
+                }
+                OPCODE::OPCONSTANT => {
+                    /*
+                        1. call the op constant function
+                        2. print constant
+                        3. return
+                    */
+
+                }
+            }
+        }
+    }
+
+    fn read_byte(&mut self,c:&Chunk) -> OPCODE {
+        // get the instruction from the chunk via ip
+        let ins:OPCODE = c.read_chunk_byte(self.ip).into();
+        self.ip+=1;
+        ins
+    }
+
+    fn read_constants (&self) {
+        /*
+            1. get the constants by the value pool
+        */
+    }
+
     fn free_vm(&mut self) {
-        self.chunks = Vec::new();
     }
 }
 
@@ -154,7 +192,6 @@ fn main() {
     c.disassemble_chunk(&"test chunk");
 
 
-    vm.interpret();
 
     vm.free_vm();
 
