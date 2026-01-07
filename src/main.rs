@@ -38,14 +38,19 @@ impl ValueArr {
         self.values.push(value);
         count
     }
+    
+    fn print_value(&self, which: usize) {
+        print!("{}", self.values[which])
+    }
+
+    fn read_value (&self,which: usize) -> Value {
+        self.values[which]
+    }
 
     fn free(&mut self) {
         self.values = Vec::new();
     }
 
-    fn print_value(&self, which: usize) {
-        print!("{}", self.values[which])
-    }
 }
 
 struct Chunk {
@@ -118,6 +123,10 @@ impl Chunk {
     fn add_constants(&mut self, value: Value) -> usize {
         self.constants.write_value(value)
     }
+
+    fn get_constant(&self,index:usize) -> Value {
+        self.constants.read_value(index)
+    }
 }
 
 
@@ -158,25 +167,31 @@ impl Vm {
                         2. print constant
                         3. return
                     */
-                     
+                    let v = self.read_constants(c);
+                    println!("value is {}",v);
                 }
             }
         }   
     }
-
+   
     fn read_byte(&mut self,c:&Chunk) -> OPCODE {
         // get the instruction from the chunk via ip
         let ins:OPCODE = c.read_chunk_byte(self.ip).into();
         self.ip+=1;
         ins
-    }
+     }
 
-    fn read_constants (&mut self) {
+    fn read_constants (&mut self,c:&Chunk) -> Value{
         /*
-            1. get the constants by the value pool and return it 
+
+
+           1. get the constants by the value pool and return it 
+           2. 
+           3. call the chunk get constants with index 
         */
-        
-        
+        // call by index
+        let index = c.read_chunk_byte(self.ip);
+        c.get_constant(index as usize)        
     }
 
     fn free_vm(&mut self) {
@@ -194,7 +209,7 @@ fn main() {
     c.write_chunk(OPCODE::OPRETURN.into(), 123);
     c.disassemble_chunk(&"test chunk");
 
-
+    vm.interpret(&c);    
 
     vm.free_vm();
 
