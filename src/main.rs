@@ -127,7 +127,8 @@ enum INTERPRETRESULT {
     INTERPRETRUNTIMEERROR
 }
 struct Vm {
-    // chunks: Option<Chunk>,
+    // what this type should
+    // chunk: Chunk,
     ip:usize
 }
 
@@ -157,10 +158,10 @@ impl Vm {
                         2. print constant
                         3. return
                     */
-
+                     
                 }
             }
-        }
+        }   
     }
 
     fn read_byte(&mut self,c:&Chunk) -> OPCODE {
@@ -170,10 +171,12 @@ impl Vm {
         ins
     }
 
-    fn read_constants (&self) {
+    fn read_constants (&mut self) {
         /*
-            1. get the constants by the value pool
+            1. get the constants by the value pool and return it 
         */
+        
+        
     }
 
     fn free_vm(&mut self) {
