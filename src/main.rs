@@ -82,7 +82,7 @@ impl Chunk {
         }
     }
 
-    fn disassemble_instruction(&self, offset: usize) -> Result<usize, ()> {
+    pub fn disassemble_instruction(&self, offset: usize) -> Result<usize, ()> {
         print!("{:04} ", offset);
         if offset > 0 && self.lines[offset] == self.lines[offset - 1] {
             print!("  | ")
@@ -136,15 +136,12 @@ enum INTERPRETRESULT {
     INTERPRETRUNTIMEERROR
 }
 struct Vm {
-    // what this type should
-    // chunk: Chunk,
     ip:usize
 }
 
 impl Vm {
     fn new_vm() -> Self {
         Vm {
-            // TODO: change this 
             ip: 0
         }
     }
@@ -156,17 +153,17 @@ impl Vm {
 
     fn run (&mut self,c:&Chunk) -> INTERPRETRESULT {
         loop {
+            
+            #[cfg(feature = "DEBUG_TRACE_EXECUTION")]
+            c.disassemble_instruction(self.ip);
+            
             let ins = self.read_byte(c);
             match  ins {
                 OPCODE::OPRETURN => {
                     return INTERPRETRESULT::INTERPRETOK
                 }
                 OPCODE::OPCONSTANT => {
-                    /*
-                        1. call the op constant function
-                        2. print constant
-                        3. return
-                    */
+                    
                     let v = self.read_constants(c);
                     println!("value is {}",v);
                 }
@@ -175,21 +172,14 @@ impl Vm {
     }
    
     fn read_byte(&mut self,c:&Chunk) -> OPCODE {
-        // get the instruction from the chunk via ip
+        // get the instruc`tion from the chunk via ip
         let ins:OPCODE = c.read_chunk_byte(self.ip).into();
         self.ip+=1;
         ins
-     }
+    }
 
     fn read_constants (&mut self,c:&Chunk) -> Value{
-        /*
-
-
-           1. get the constants by the value pool and return it 
-           2. 
-           3. call the chunk get constants with index 
-        */
-        // call by index
+        
         let index = c.read_chunk_byte(self.ip);
         c.get_constant(index as usize)        
     }
