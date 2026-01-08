@@ -38,27 +38,24 @@ impl ValueArr {
         self.values.push(value);
         count
     }
-    
+
     fn print_value(&self, which: usize) {
         print!("{}", self.values[which])
     }
 
-    fn read_value (&self,which: usize) -> Value {
+    fn read_value(&self, which: usize) -> Value {
         self.values[which]
     }
 
     fn free(&mut self) {
         self.values = Vec::new();
     }
-
 }
 
 struct Chunk {
     code: Vec<u8>,
     lines: Vec<usize>,
     constants: ValueArr,
-    
-    
 }
 
 impl Chunk {
@@ -67,7 +64,6 @@ impl Chunk {
             code: Vec::new(),
             lines: Vec::new(),
             constants: ValueArr::new(),
-            
         }
     }
 
@@ -113,10 +109,9 @@ impl Chunk {
         offset + 2
     }
 
-    fn read_chunk_byte(&self, ip:usize) -> u8 {
+    fn read_chunk_byte(&self, ip: usize) -> u8 {
         self.code[ip]
     }
-
 
     fn free(&mut self) {
         self.code = Vec::new();
@@ -127,83 +122,81 @@ impl Chunk {
         self.constants.write_value(value)
     }
 
-    fn get_constant(&self,index:usize) -> Value {
+    fn get_constant(&self, index: usize) -> Value {
         self.constants.read_value(index)
     }
 }
 
-
 enum INTERPRETRESULT {
     INTERPRETOK,
     INTERPRETCOMPILEERROR,
-    INTERPRETRUNTIMEERROR
+    INTERPRETRUNTIMEERROR,
 }
 struct Vm {
-    ip:usize,
-    stack:Vec<Value>,
+    ip: usize,
+    stack: Vec<Value>,
 }
 
 impl Vm {
     fn new_vm() -> Self {
         Vm {
             ip: 0,
-            stack:Vec::with_capacity(256),
+            stack: Vec::with_capacity(256),
         }
-        
     }
 
-    fn interpret (&mut self,c:&Chunk) -> INTERPRETRESULT {
+    fn interpret(&mut self, c: &Chunk) -> INTERPRETRESULT {
         self.ip = 0;
         self.run(c)
-    }    
+    }
 
-    fn run (&mut self,c:&Chunk) -> INTERPRETRESULT {
+    fn run(&mut self, c: &Chunk) -> INTERPRETRESULT {
         loop {
-            
             #[cfg(feature = "DEBUG_TRACE_EXECUTION")]
-            c.disassemble_instruction(self.ip);
-            
-            let ins = self.read_byte(c);
-            match  ins {
-                OPCODE::OPRETURN => {
-                    return INTERPRETRESULT::INTERPRETOK
+            {
+                print!("          ");
+                for v in &self.stack {
+                    print!("[  {v}  ]")
                 }
+                println!();
+                c.disassemble_instruction(self.ip);
+            }
+
+            let ins = self.read_byte(c);
+            match ins {
+                OPCODE::OPRETURN => {
+                    println!("{}",self.stack.pop().unwrap());
+                    return INTERPRETRESULT::INTERPRETOK
+                },
                 OPCODE::OPCONSTANT => {
-                    
                     let v = self.read_constants(c);
-                    println!("value is {}",v);
+                    self.stack.push(v);
+                    println!("value is {}", v);
                 }
             }
-        }   
+        }
     }
-   
-    fn read_byte(&mut self,c:&Chunk) -> OPCODE {
+
+    fn read_byte(&mut self, c: &Chunk) -> OPCODE {
         // get the instruc`tion from the chunk via ip
-        let ins:OPCODE = c.read_chunk_byte(self.ip).into();
-        self.ip+=1;
+        let ins: OPCODE = c.read_chunk_byte(self.ip).into();
+        self.ip += 1;
         ins
     }
 
-    fn read_constants (&mut self,c:&Chunk) -> Value{
-        
+    fn read_constants(&mut self, c: &Chunk) -> Value {
         let index = c.read_chunk_byte(self.ip);
-        c.get_constant(index as usize)        
+        c.get_constant(index as usize)
     }
 
-    // TODO: implement the reset stack function 
+    // TODO: implement the reset stack function
     fn reset_stack(&mut self) {
         self.stack = Vec::new();
     }
 
-    fn push(&mut self,value:Value) {
-        self.stack.push(value);
-    } 
-    fn pop(&mut self) -> Option<Value> {
-        self.stack.pop()
-    }
+   
 
-    fn free_vm(&mut self) {
-    }
+    fn free_vm(&mut self) {}
 }
 
 fn main() {
@@ -217,7 +210,7 @@ fn main() {
     c.write_chunk(OPCODE::OPRETURN.into(), 123);
     c.disassemble_chunk(&"test chunk");
 
-    vm.interpret(&c);    
+    vm.interpret(&c);
 
     vm.free_vm();
 
