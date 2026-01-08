@@ -57,6 +57,8 @@ struct Chunk {
     code: Vec<u8>,
     lines: Vec<usize>,
     constants: ValueArr,
+    
+    
 }
 
 impl Chunk {
@@ -65,6 +67,7 @@ impl Chunk {
             code: Vec::new(),
             lines: Vec::new(),
             constants: ValueArr::new(),
+            
         }
     }
 
@@ -136,14 +139,17 @@ enum INTERPRETRESULT {
     INTERPRETRUNTIMEERROR
 }
 struct Vm {
-    ip:usize
+    ip:usize,
+    stack:Vec<Value>,
 }
 
 impl Vm {
     fn new_vm() -> Self {
         Vm {
-            ip: 0
+            ip: 0,
+            stack:Vec::with_capacity(256),
         }
+        
     }
 
     fn interpret (&mut self,c:&Chunk) -> INTERPRETRESULT {
@@ -182,6 +188,18 @@ impl Vm {
         
         let index = c.read_chunk_byte(self.ip);
         c.get_constant(index as usize)        
+    }
+
+    // TODO: implement the reset stack function 
+    fn reset_stack(&mut self) {
+        self.stack = Vec::new();
+    }
+
+    fn push(&mut self,value:Value) {
+        self.stack.push(value);
+    } 
+    fn pop(&mut self) -> Option<Value> {
+        self.stack.pop()
     }
 
     fn free_vm(&mut self) {
