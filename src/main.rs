@@ -1,8 +1,10 @@
 #[derive(Debug)]
 enum OPCODE {
-    OPRETURN = 0,
-    OPCONSTANT = 1,
+    OPCONSTANT,
+    OPNEGATE,
+    OPRETURN,
 }
+
 
 // OPCODE --> u8
 impl From<OPCODE> for u8 {
@@ -172,6 +174,9 @@ impl Vm {
                     let v = self.read_constants(c);
                     self.stack.push(v);
                     println!("value is {}", v);
+                }
+                OPCODE::OPNEGATE => {
+                    println!("op negate");
                 }
             }
         }
