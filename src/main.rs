@@ -18,8 +18,9 @@ impl From<OPCODE> for u8 {
 impl From<u8> for OPCODE {
     fn from(value: u8) -> Self {
         match value {
-            0 => OPCODE::OPRETURN,
-            1 => OPCODE::OPCONSTANT,
+            0 => OPCODE::OPCONSTANT,
+            1 => OPCODE::OPNEGATE,
+            2 => OPCODE::OPRETURN,
             _ => unimplemented!(),
         }
     }
@@ -68,8 +69,14 @@ impl Chunk {
             constants: ValueArr::new(),
         }
     }
+    
 
-    fn write_chunk(&mut self, code: u8, line: usize) {
+    fn write(&mut self,byte:u8, line:usize ) {
+        self.code.push(byte);   
+        self.lines.push(line);
+    }
+
+    fn write_opcode(&mut self, code: u8, line: usize) {
         self.lines.push(line);
         self.code.push(code);
     }
@@ -93,6 +100,7 @@ impl Chunk {
         let code: OPCODE = self.code[offset].into();
         match code {
             OPCODE::OPCONSTANT => Ok(self.constant_instruction("OP_CONSTANT".to_string(), offset)),
+            OPCODE::OPNEGATE => Ok(self.simple_instruction(&code, offset)),
             OPCODE::OPRETURN => Ok(self.simple_instruction(&code, offset)),
             _ => Err(eprintln!("error finding the opcode")),
         }
@@ -167,7 +175,7 @@ impl Vm {
             let ins = self.read_byte(c);
             match ins {
                 OPCODE::OPRETURN => {
-                    println!("{}",self.stack.pop().unwrap());
+                    println!("{}",self.stack.pop().unwrap()); 
                     return INTERPRETRESULT::INTERPRETOK
                 },
                 OPCODE::OPCONSTANT => {
@@ -176,7 +184,8 @@ impl Vm {
                     println!("value is {}", v);
                 }
                 OPCODE::OPNEGATE => {
-                    println!("op negate");
+                    let value = self.stack.pop().unwrap();
+                    self.stack.push(-value);
                 }
             }
         }
@@ -191,10 +200,10 @@ impl Vm {
 
     fn read_constants(&mut self, c: &Chunk) -> Value {
         let index = c.read_chunk_byte(self.ip);
+        self.ip +=1;
         c.get_constant(index as usize)
     }
 
-    // TODO: implement the reset stack function
     fn reset_stack(&mut self) {
         self.stack = Vec::new();
     }
@@ -209,10 +218,12 @@ fn main() {
     let mut c = Chunk::new();
 
     let constant = c.add_constants(1.2);
-    c.write_chunk(OPCODE::OPCONSTANT.into(), 123);
-    c.write_chunk(constant as u8, 123);
+    c.write_opcode(OPCODE::OPCONSTANT.into(), 123);
+    c.write(constant as u8, 123);
 
-    c.write_chunk(OPCODE::OPRETURN.into(), 123);
+    c.write_opcode(OPCODE::OPNEGATE.into(),123);
+    
+    c.write_opcode(OPCODE::OPRETURN.into(), 123);
     c.disassemble_chunk(&"test chunk");
 
     vm.interpret(&c);
