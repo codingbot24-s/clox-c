@@ -3,6 +3,10 @@ enum OPCODE {
     OPCONSTANT,
     OPNEGATE,
     OPRETURN,
+    OPADD,
+    OPSUB,
+    OPMUL,
+    OPDIVIDE,
 }
 
 
@@ -21,6 +25,10 @@ impl From<u8> for OPCODE {
             0 => OPCODE::OPCONSTANT,
             1 => OPCODE::OPNEGATE,
             2 => OPCODE::OPRETURN,
+            3 => OPCODE::OPADD,
+            4 => OPCODE::OPSUB,
+            5 => OPCODE::OPMUL,
+            6 => OPCODE::OPDIVIDE,
             _ => unimplemented!(),
         }
     }
@@ -187,6 +195,11 @@ impl Vm {
                     let value = self.stack.pop().unwrap();
                     self.stack.push(-value);
                 }
+                // call the binary op function according to case 
+                OPCODE::OPADD => {}
+                OPCODE::OPSUB => {}
+                OPCODE::OPMUL => {}
+                OPCODE::OPDIVIDE => {}
             }
         }
     }
@@ -208,7 +221,7 @@ impl Vm {
         self.stack = Vec::new();
     }
 
-   
+    fn binary_op () {}
 
     fn free_vm(&mut self) {}
 }
