@@ -9,7 +9,6 @@ enum OPCODE {
     OPDIVIDE,
 }
 
-
 // OPCODE --> u8
 impl From<OPCODE> for u8 {
     fn from(value: OPCODE) -> Self {
@@ -77,10 +76,9 @@ impl Chunk {
             constants: ValueArr::new(),
         }
     }
-    
 
-    fn write(&mut self,byte:u8, line:usize ) {
-        self.code.push(byte);   
+    fn write(&mut self, byte: u8, line: usize) {
+        self.code.push(byte);
         self.lines.push(line);
     }
 
@@ -110,7 +108,10 @@ impl Chunk {
             OPCODE::OPCONSTANT => Ok(self.constant_instruction("OP_CONSTANT".to_string(), offset)),
             OPCODE::OPNEGATE => Ok(self.simple_instruction(&code, offset)),
             OPCODE::OPRETURN => Ok(self.simple_instruction(&code, offset)),
-            _ => Err(eprintln!("error finding the opcode")),
+            OPCODE::OPADD => Ok(self.simple_instruction(&code, offset)),
+            OPCODE::OPSUB => Ok(self.simple_instruction(&code, offset)),
+            OPCODE::OPMUL => Ok(self.simple_instruction(&code, offset)),
+            OPCODE::OPDIVIDE => Ok(self.simple_instruction(&code, offset)),
         }
     }
 
@@ -183,9 +184,9 @@ impl Vm {
             let ins = self.read_byte(c);
             match ins {
                 OPCODE::OPRETURN => {
-                    println!("{}",self.stack.pop().unwrap()); 
-                    return INTERPRETRESULT::INTERPRETOK
-                },
+                    println!("{}", self.stack.pop().unwrap());
+                    return INTERPRETRESULT::INTERPRETOK;
+                }
                 OPCODE::OPCONSTANT => {
                     let v = self.read_constants(c);
                     self.stack.push(v);
@@ -195,11 +196,19 @@ impl Vm {
                     let value = self.stack.pop().unwrap();
                     self.stack.push(-value);
                 }
-                // call the binary op function according to case 
-                OPCODE::OPADD => {}
-                OPCODE::OPSUB => {}
-                OPCODE::OPMUL => {}
-                OPCODE::OPDIVIDE => {}
+                // call the binary op function according to case
+                OPCODE::OPADD => {
+                    self.binary_op(|a, b| a + b);
+                }
+                OPCODE::OPSUB => {
+                    self.binary_op(|a, b| a - b);
+                }
+                OPCODE::OPMUL => {
+                    self.binary_op(|a, b| a * b);
+                }
+                OPCODE::OPDIVIDE => {
+                    self.binary_op(|a, b| a / b);
+                }
             }
         }
     }
@@ -213,7 +222,7 @@ impl Vm {
 
     fn read_constants(&mut self, c: &Chunk) -> Value {
         let index = c.read_chunk_byte(self.ip);
-        self.ip +=1;
+        self.ip += 1;
         c.get_constant(index as usize)
     }
 
@@ -221,7 +230,11 @@ impl Vm {
         self.stack = Vec::new();
     }
 
-    fn binary_op () {}
+    fn binary_op(&mut self, op: fn(a: Value, b: Value) -> Value) {
+        let a = self.stack.pop().unwrap();
+        let b = self.stack.pop().unwrap();
+        self.stack.push(op(a, b));
+    }
 
     fn free_vm(&mut self) {}
 }
@@ -233,9 +246,21 @@ fn main() {
     let constant = c.add_constants(1.2);
     c.write_opcode(OPCODE::OPCONSTANT.into(), 123);
     c.write(constant as u8, 123);
-
-    c.write_opcode(OPCODE::OPNEGATE.into(),123);
+   
+    let constant = c.add_constants(3.4);
+    c.write_opcode(OPCODE::OPCONSTANT.into(), 123);
+    c.write(constant as u8 , 123);
     
+    c.write_opcode(OPCODE::OPADD.into(), 123);
+    
+    let constant = c.add_constants(5.6);
+    c.write_opcode(OPCODE::OPCONSTANT.into(),123);
+    c.write(constant as u8 , 123);
+
+    c.write_opcode(OPCODE::OPDIVIDE.into(), 123);
+
+    c.write_opcode(OPCODE::OPNEGATE.into(), 123);
+
     c.write_opcode(OPCODE::OPRETURN.into(), 123);
     c.disassemble_chunk(&"test chunk");
 
