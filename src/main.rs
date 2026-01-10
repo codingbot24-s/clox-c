@@ -1,3 +1,5 @@
+use std::{env, io};
+
 #[derive(Debug)]
 enum OPCODE {
     OPCONSTANT,
@@ -239,34 +241,43 @@ impl Vm {
     fn free_vm(&mut self) {}
 }
 
+fn repl() {
+    println!(">   ");
+    loop {
+        for line in io::stdin().lines() {
+            if let Ok(l) = line {
+                // TODO: call the itreprete function    
+                println!(" calling the interpreter with the line ,{}",l);
+            } else {
+                println!()
+            }
+        }
+    }
+}
+
+fn run_file (path:&str) {
+    let buf = std::fs::read_to_string(path);
+    match buf {
+        Ok(source) => {
+            // TODO: call interpreter  on the buffer
+        }
+        Err(err) => {println!("error reading from the file")}
+    } 
+}
+
 fn main() {
     let mut vm = Vm::new_vm();
-    let mut c = Chunk::new();
 
-    let constant = c.add_constants(1.2);
-    c.write_opcode(OPCODE::OPCONSTANT.into(), 123);
-    c.write(constant as u8, 123);
-   
-    let constant = c.add_constants(3.4);
-    c.write_opcode(OPCODE::OPCONSTANT.into(), 123);
-    c.write(constant as u8 , 123);
+    let args: Vec<String> = env::args().collect();
     
-    c.write_opcode(OPCODE::OPADD.into(), 123);
-    
-    let constant = c.add_constants(5.6);
-    c.write_opcode(OPCODE::OPCONSTANT.into(),123);
-    c.write(constant as u8 , 123);
-
-    c.write_opcode(OPCODE::OPDIVIDE.into(), 123);
-
-    c.write_opcode(OPCODE::OPNEGATE.into(), 123);
-
-    c.write_opcode(OPCODE::OPRETURN.into(), 123);
-    c.disassemble_chunk(&"test chunk");
-
-    vm.interpret(&c);
+    match args.len() {
+        1 => repl(),
+        2 => run_file(&args[1]),
+        _ => {
+            println!("Usage: clox [path]");
+            std::process::exit(64);
+        }
+    }
 
     vm.free_vm();
-
-    c.free();
 }
