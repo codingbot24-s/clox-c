@@ -153,6 +153,12 @@ enum INTERPRETRESULT {
     INTERPRETCOMPILEERROR,
     INTERPRETRUNTIMEERROR,
 }
+
+
+/*
+        VM 
+*/
+
 struct Vm {
     ip: usize,
     stack: Vec<Value>,
@@ -166,10 +172,14 @@ impl Vm {
         }
     }
 
-    fn interpret(&mut self, c: &Chunk) -> INTERPRETRESULT {
-        self.ip = 0;
-        self.run(c)
+    fn interpret(&mut self, source:String) -> INTERPRETRESULT {
+        // TODO: call the compile function 
+        let compiler =  compiler::new();
+        compiler.compile(source);
+        INTERPRETRESULT::INTERPRETOK
     }
+
+    
 
     fn run(&mut self, c: &Chunk) -> INTERPRETRESULT {
         loop {
@@ -241,13 +251,21 @@ impl Vm {
     fn free_vm(&mut self) {}
 }
 
-fn repl() {
+
+
+
+/*
+
+    code running function
+*/
+
+fn repl(vm:&mut Vm) {
     println!(">   ");
     loop {
         for line in io::stdin().lines() {
             if let Ok(l) = line {
-                // TODO: call the itreprete function    
-                println!(" calling the interpreter with the line ,{}",l);
+                
+                let _ = vm.interpret(l);
             } else {
                 println!()
             }
@@ -255,15 +273,145 @@ fn repl() {
     }
 }
 
-fn run_file (path:&str) {
+fn run_file (path:&str,vm:&mut Vm) {
     let buf = std::fs::read_to_string(path);
     match buf {
         Ok(source) => {
-            // TODO: call interpreter  on the buffer
+            vm.interpret(source);
         }
         Err(err) => {println!("error reading from the file")}
     } 
 }
+
+
+
+/*
+    compiler 
+*/
+struct compiler {}
+
+impl compiler {
+    fn new () -> Self {
+        Self { }
+    }
+    fn compile (&self, source:String) {
+        let mut s = Scanner::new(source);
+        let mut line:usize = 0;
+        loop {
+            let token = s.scan_token();
+            if token.line != line {
+                println!("{:4}", token.line);
+                line = token.line;
+            }else {
+                println!("   | ");
+            }
+            
+            println!("{:?} '{}',{},", token.ttype, token.length, token.start); 
+
+            // add break if token type == eof
+            // if token.ttype == TokenType::EOF {}
+        }
+    }
+}
+
+
+/*
+    Scanner
+*/
+
+struct Scanner {
+    source:Vec<char>,
+    start:usize,
+    current:usize,
+    line:usize
+}
+
+impl Scanner {
+    fn new(source:String) -> Self {
+        Self {
+            source: source.chars().collect(),
+            start:0,
+            current:0,
+            line:1
+        }
+    }
+
+    fn scan_token(&mut self) -> Token {
+        self.start = self.current;
+        if self.is_at_end() {
+            // TODO: -> call the make token function return the token EOF 
+            todo!()
+        }
+        todo!()
+    }
+
+    fn is_at_end(&self) -> bool {
+        self.current >= self.source.len()
+        
+    }
+
+    fn make_token() {}
+}
+
+
+
+struct Token {
+    ttype:TokenType,
+    start:usize,
+    length:usize,
+    line:usize,
+}
+
+#[derive(Debug)]
+enum TokenType {
+    LEFTPAREN,
+    RIGHTPAREN,
+    LEFTBRACE,
+    RIGHTBRACE,
+    COMMA,
+    DOT,
+    MINUS,
+    PLUS,
+    SEMICOLON,
+    SLASH,
+    STAR,
+
+    BANG,
+    BANGEQUAL,
+    EQUAL,
+    EQUALEQUAL,
+    GREATER,
+    GREATEREQUAL,
+    LESS,
+    LESSEQUAL,
+
+    IDENTIFIER,
+    STRING,
+    NUMBER,
+
+    AND,
+    CLASS,
+    ELSE,
+    FALSE,
+    FUN,
+    FOR,
+    IF,
+    NIL,
+    OR,
+    PRINT,
+    RETURN,
+    SUPER,
+    THIS,
+    TRUE,
+    VAR,
+    WHILE,
+
+    EOF,
+
+
+    ERROR
+}
+
 
 fn main() {
     let mut vm = Vm::new_vm();
@@ -271,8 +419,8 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     
     match args.len() {
-        1 => repl(),
-        2 => run_file(&args[1]),
+        1 => repl(&mut vm),
+        2 => run_file(&args[1],&mut vm),
         _ => {
             println!("Usage: clox [path]");
             std::process::exit(64);
