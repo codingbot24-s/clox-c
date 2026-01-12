@@ -350,7 +350,9 @@ impl Scanner {
         
     }
 
-    fn make_token() {}
+    fn make_token() {
+        // TODO: implement the make token 
+    }
 }
 
 
