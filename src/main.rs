@@ -306,10 +306,13 @@ impl compiler {
                 println!("   | ");
             }
             
-            println!("{:?} '{}',{},", token.ttype, token.length, token.start); 
+            println!("{:?} '{}',{},", token.ttype, token.lexeme, token.line); 
 
             // add break if token type == eof
-            // if token.ttype == TokenType::EOF {}
+            // error partialeq missing for tokentype
+            // if token.ttype == TokenType::EOF {
+                
+            // }
         }
     }
 }
@@ -339,19 +342,31 @@ impl Scanner {
     fn scan_token(&mut self) -> Token {
         self.start = self.current;
         if self.is_at_end() {
-            // TODO: -> call the make token function return the token EOF 
-            todo!()
+            self.make_token(TokenType::EOF);
         }
-        todo!()
+        self.error_token(&"Unexpected character.")
     }
 
     fn is_at_end(&self) -> bool {
-        self.current >= self.source.len()
+        self.current == self.source.len()
         
     }
 
-    fn make_token() {
-        // TODO: implement the make token 
+    fn make_token(&self,tt:TokenType) -> Token { 
+       
+        Token {
+            ttype:tt,
+            lexeme: self.source[self.current..self.start].iter().collect(),
+            line:self.line
+        }
+        
+    }
+    fn error_token(&self,message:&str) -> Token {
+        Token {
+            ttype:TokenType::ERROR,
+            lexeme: message.to_string(),
+            line:self.line
+        }
     }
 }
 
@@ -359,9 +374,12 @@ impl Scanner {
 
 struct Token {
     ttype:TokenType,
-    start:usize,
-    length:usize,
+    lexeme:String,
     line:usize,
+}
+
+impl Token {
+    
 }
 
 #[derive(Debug)]
