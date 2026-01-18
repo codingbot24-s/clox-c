@@ -173,7 +173,7 @@ impl Vm {
     }
 
     fn interpret(&mut self, source:String) -> INTERPRETRESULT {
-        // TODO: call the compile function 
+        
         let compiler =  compiler::new();
         compiler.compile(source);
         INTERPRETRESULT::INTERPRETOK
@@ -449,3 +449,6 @@ fn main() {
 
     vm.free_vm();
 }
+
+// remaining from scanner //
+
