@@ -307,7 +307,7 @@ impl compiler {
             }
             
             println!("{:?} '{}',{},", token.ttype, token.lexeme, token.line); 
-
+            
             // add break if token type == eof
             // error partialeq missing for tokentype
             // if token.ttype == TokenType::EOF {
